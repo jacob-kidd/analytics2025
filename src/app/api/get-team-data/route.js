@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { sql } from '@vercel/postgres';
 import _ from 'lodash';
-import { tidy, mutate, mean, select, summarizeAll, groupBy, summarize, first, n, median, total, arrange, asc } from '@tidyjs/tidy';
+import { tidy, mutate, mean, select, summarizeAll, groupBy, summarize, first, n, median, total, arrange, asc, slice } from '@tidyjs/tidy';
 import { calcEPA, calcAuto, calcTele, calcEnd } from "../../../util/calculations.js";
 
 export const revalidate = 300; // Cache for 5 minutes
@@ -98,9 +98,11 @@ export async function GET(request) {
     last3Auto: arr => arr.slice(-3).reduce((sum, row) => sum + row.auto, 0) / Math.min(3, arr.length),
     last3Tele: arr => arr.slice(-3).reduce((sum, row) => sum + row.tele, 0) / Math.min(3, arr.length),
     last3End: arr => arr.slice(-3).reduce((sum, row) => sum + row.end, 0) / Math.min(3, arr.length),
-
-
+  
+    // Extract match and performance metrics
     epaOverTime: arr => tidy(arr, select(['epa', 'match'])),
+    autoOverTime: arr => tidy(arr, select(['match', 'auto'])),
+    teleOverTime: arr => tidy(arr, select(['match', 'tele'])),
   
     consistency: arr => {
       let breakdownRate = percentValue(arr, 'breakdown', true) * 100;
@@ -305,7 +307,7 @@ export async function GET(request) {
     },
     
     successCage: arr => {
-      const successCount = rows.filter(row => [2, 3].includes(row.endlocation)).length;
+      const successCount = rows.filter(row => [3, 4].includes(row.endlocation)).length;
       return rows.length > 0 ? successCount / rows.length * 100: 0;
     },
     
@@ -340,26 +342,29 @@ export async function GET(request) {
   };
 
 
-  function aggregateByMatch(dataArray) {
-    return tidy(
-      dataArray,
-      groupBy("match", [
-        summarize({
-          epa: mean("epa"),
-          auto: mean("auto"),
-          tele: mean("tele"),
-        }),
-      ])
-    );
-  }
-  
-    let processedEPAOverTime = aggregateByMatch(returnObject[0].epaOverTime);
-    let processedAutoOverTime = aggregateByMatch(returnObject[0].autoOverTime);
-    let processedTeleOverTime = aggregateByMatch(returnObject[0].teleOverTime);
-    
-    returnObject[0].epaOverTime = processedEPAOverTime;
-    returnObject[0].autoOverTime = processedAutoOverTime;
-    returnObject[0].teleOverTime = processedTeleOverTime;
+  // Then, update your aggregateByMatch function to ensure proper sorting:
+function aggregateByMatch(dataArray) {
+  return tidy(
+    dataArray,
+    groupBy("match", [
+      summarize({
+        epa: mean("epa"),
+        auto: mean("auto"),
+        tele: mean("tele"),
+      }),
+    ]),
+    arrange([asc("match")]) // This ensures sorting by match number in ascending order
+  );
+}
+
+// Apply the aggregation and sorting:
+let processedEPAOverTime = aggregateByMatch(returnObject[0].epaOverTime);
+let processedAutoOverTime = aggregateByMatch(returnObject[0].autoOverTime);
+let processedTeleOverTime = aggregateByMatch(returnObject[0].teleOverTime);
+
+returnObject[0].epaOverTime = processedEPAOverTime;
+returnObject[0].autoOverTime = processedAutoOverTime;
+returnObject[0].teleOverTime = processedTeleOverTime;
   
 
   console.log("Backend End Placement:", returnObject[0].defense);
