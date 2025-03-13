@@ -11,6 +11,11 @@ import Qualitative from "./form-components/Qualitative";
 import SubHeader from "./form-components/SubHeader";
 import MatchType from "./form-components/MatchType";
 import JSConfetti from 'js-confetti';
+import QRCode from "qrcode";
+import pako from 'pako';
+import base58 from 'base-58';
+
+
 
 
 export default function Home() {
@@ -20,6 +25,13 @@ export default function Home() {
   const [defense, setDefense] = useState(false);
   const [matchType, setMatchType] = useState("2");
   const [scoutProfile, setScoutProfile] = useState(null);
+  const [showQRCode, setShowQRCode] = useState(false);
+  const [formData, setFormData] = useState(null);
+  const [qrCodeDataURL, setQrCodeDataURL] = useState("");
+  const [qrCodeDataURL1, setQrCodeDataURL1] = useState("");
+  const [qrCodeDataURL2, setQrCodeDataURL2] = useState("");
+  const [viewMode, setViewMode] = useState('qualitative'); // 'qualitative' or 'quantitative'
+
 
   const form = useRef();
 
@@ -33,7 +45,108 @@ export default function Home() {
       }
     }
   }, []);
+
+  const generateTabSeparatedString = (data) => {
+    const boolToSheets = (value) => value ? "TRUE" : "FALSE";
+    
+    // Calculate composite values
+    const autoCoralL1L2 = (data.autol1success || 0) + (data.autol2success || 0);
+    const autoCoralMissed = 
+      (data.autol1fail || 0) + 
+      (data.autol2fail || 0) + 
+      (data.autol3fail || 0) + 
+      (data.autol4fail || 0) +
+      (data.autoprocessorfail || 0);
   
+    const teleCoralL1L2 = (data.telel1success || 0) + (data.telel2success || 0);
+    const teleCoralMissed = 
+      (data.telel1fail || 0) + 
+      (data.telel2fail || 0) + 
+      (data.telel3fail || 0) + 
+      (data.telel4fail || 0) +
+      (data.teleprocessorfail || 0);
+  
+    // Climb status calculations
+    const climbStatus = data.stageplacement || -1;
+    const parked = climbStatus === 0 ? "TRUE" : "FALSE";
+    const shallowClimb = climbStatus === 1 ? "TRUE" : "FALSE";
+    const deepClimb = climbStatus === 2 ? "TRUE" : "FALSE";
+  
+    // Combine notes
+    const notes = [
+      data.breakdowncomments,
+      data.defensecomments,
+      data.generalcomments
+    ].filter(Boolean).join("; ") || "NULL";
+  
+    // New order mapping
+    const values = [
+      data.scoutname || "NULL",         // scouter name
+      data.match || "NULL",             // match num
+      data.team || "NULL",              // team scouted
+      boolToSheets(!data.noshow),       // showed up
+      "NULL",                           // starting position (not collected)
+      boolToSheets(data.leave),         // leave
+      autoCoralL1L2,                    // auto coral L1/2
+      data.autol3success || 0,          // auto coral L3
+      data.autol4success || 0,          // auto coral L4
+      data.autoprocessorsuccess || 0,   // auto processor
+      data.autoalgaeremoved || 0,       // auto barge
+      autoCoralMissed,                  // auto missed
+      teleCoralL1L2,                    // tele coral l1/2
+      data.telel3success || 0,          // tele coral l3
+      data.telel4success || 0,          // tele coral l4
+      data.teleprocessorsuccess || 0,   // tele processor
+      data.telealgaeremoved || 0,       // tele barge
+      teleCoralMissed,                  // tele missed
+      "NULL",                           // climb time (not collected)
+      parked,                           // parked
+      shallowClimb,                     // shallow climb
+      deepClimb,                        // deep climb
+      notes                             // notes
+    ];
+  
+    return values.join("\t");
+  };
+
+
+  
+  // Generate QR code data URL using the qrcode library
+  const generateQRDataURL = async (data) => {
+    try {
+      const compressedData = pako.gzip(new TextEncoder().encode(JSON.stringify(data)));
+      const base58Encoded = base58.encode(compressedData);
+  
+      // Generate original QR code
+      const dataURL1 = await QRCode.toDataURL(base58Encoded, {
+        width: 400,
+        margin: 3,
+        errorCorrectionLevel: 'L'
+      });
+  
+      // Generate TSV QR code
+      const tsvString = generateTabSeparatedString(data);
+      const dataURL2 = await QRCode.toDataURL(tsvString, {
+        width: 400,
+        margin: 3,
+        errorCorrectionLevel: 'L'
+      });
+  
+      setQrCodeDataURL1(dataURL1);
+      setQrCodeDataURL2(dataURL2);
+    } catch (error) {
+      console.error("Error generating QR code:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (formData) {
+      generateQRDataURL(formData);
+    }
+  }, [formData]);
+
+
+
   function onNoShowChange(e) {
     let checked = e.target.checked;
     setNoShow(checked);
@@ -61,11 +174,9 @@ export default function Home() {
 
 
   // added from last years code (still review)
-  async function submit(e) {
+ async function generateQRCode(e) {
     e.preventDefault();
-    //disable submit
-    let submitButton = document.querySelector("#submit");//todo: get changed to a useRef
-    submitButton.disabled = true;
+    
     //import values from form to data variable
 
     let data = {noshow: false, leave: false, algaelowreefintake: false, algaehighreefintake: false, lollipop: false, algaegrndintake: false, coralgrndintake: false, coralstationintake: false, srcintake: false, breakdown: false, defense: false, stageplacement: -1, breakdowncomments: null, defensecomments: null, generalcomments: null };
@@ -89,7 +200,7 @@ export default function Home() {
     for (let preMatchInput of preMatchInputs) {
       if(preMatchInput.value == "" || preMatchInput.value <= "0") {
         alert("Invalid Pre-Match Data!");
-        submitButton.disabled = false;
+        
         return;
       } 
     }
@@ -111,64 +222,103 @@ export default function Home() {
       }
     }
 
-    //confirm and submit
-    if (confirm("Are you sure you want to submit?") == true) {
-      fetch('/api/add-match-data', {
-        method: "POST",
-        body: JSON.stringify(data)
-      }).then((response)=> {
-        if(response.status === 201) {
-          return response.json();
-        } else {
-          return response.json().then(err => Promise.reject(err.message));
-        }
-      }) 
-      .then(data => {
-        alert("Thank you!");
-        const jsConfetti = new JSConfetti();
-        jsConfetti.addConfetti({
-        emojis: ['🐠', '🐡', '🦀', '🪸'],
-        emojiSize: 100,
-        confettiRadius: 3,
-        confettiNumber: 100,
-       })
-       
-        if (typeof document !== 'undefined')  {
-          let ScoutName = document.querySelector("input[name='scoutname']").value;
-          let ScoutTeam = document.querySelector("input[name='scoutteam']").value;
-          let Match = document.querySelector("input[name='match']").value;
-          let newProfile = { 
-            scoutname: ScoutName, 
-            scoutteam: ScoutTeam, 
-            match: Number(Match)+1,
-            matchType: matchType 
-          };
-          setScoutProfile(newProfile);
-          localStorage.setItem("ScoutProfile", JSON.stringify(newProfile));
-          console.log(scoutProfile)
-        }
-
-        globalThis.scrollTo({ top: 0, left: 0, behavior: "smooth" });
-
-        setTimeout(() => {
-          location.reload()
-        }, 2000);
-      })
-      .catch(error => {
-        alert(error);
-        submitButton.disabled = false;
-      });
-
-    } else {
-      //user didn't want to submit
-      submitButton.disabled = false;
-    };
+    // Add timestamp and unique identifier to data
+    data.timestamp = new Date().toISOString();
+    data.id = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    
+    // Store the form data for QR code generation
+    setFormData(data);
+    setShowQRCode(true);
+    
+    // Save scout profile for next time
+    if (typeof document !== 'undefined')  {
+      let ScoutName = document.querySelector("input[name='scoutname']").value;
+      let ScoutTeam = document.querySelector("input[name='scoutteam']").value;
+      let Match = document.querySelector("input[name='match']").value;
+      let newProfile = { 
+        scoutname: ScoutName, 
+        scoutteam: ScoutTeam, 
+        match: Number(Match)+1,
+        matchType: matchType 
+      };
+      setScoutProfile(newProfile);
+      localStorage.setItem("ScoutProfile", JSON.stringify(newProfile));
+    }
   }
-console.log("page",matchType)
+  
+  // Handle QR code scan completion
+  function handleQRClose() {
+    setShowQRCode(false);
+    
+    // Show confetti effect
+    const jsConfetti = new JSConfetti();
+    jsConfetti.addConfetti({
+      emojis: ['🐠', '🐡', '🦀', '🪸'],
+      emojiSize: 100,
+      confettiRadius: 3,
+      confettiNumber: 100,
+    });
+    
+    globalThis.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+    
+    setTimeout(() => {
+      location.reload()
+    }, 2000);
+  }
+
+  console.log("page", matchType);
 
   return (
+
     <div className={styles.MainDiv}>
-      <form ref={form} name="Scouting Form" onSubmit={submit}>
+
+    
+      <div className={styles.viewToggle}>
+        <button 
+        className={`${styles.toggleButton} ${viewMode === 'qualitative' ? styles.active : ''}`}
+        onClick={() => setViewMode('qualitative')}
+        >
+        Qualitative
+       </button>
+        <button
+          className={`${styles.toggleButton} ${viewMode === 'quantitative' ? styles.active : ''}`}
+          onClick={() => setViewMode('quantitative')}
+         >
+          Quantitative
+        </button>
+      </div>
+
+
+
+     {showQRCode ? (
+        <div className={styles.QRCodeOverlay}>
+          <div className={styles.QRCodeContainer}>
+            <h2>Scan QR Codes to Submit Form Data</h2>
+            <div className={styles.QRCodeRow}>
+              {qrCodeDataURL1 && (
+                <img 
+                  src={qrCodeDataURL1} 
+                  alt="QR Code 1" 
+                  className={styles.QRCodeImage}
+                />
+              )}
+              {qrCodeDataURL2 && (
+                <img 
+                  src={qrCodeDataURL2} 
+                  alt="QR Code 2" 
+                  className={styles.QRCodeImage}
+                />
+              )}
+            </div>
+            <p>After scanning, click the button below to close</p>
+            <button onClick={handleQRClose} className={styles.QRCloseButton}>
+              Done
+            </button>
+          </div>
+        </div>
+      ) : (
+
+      <form ref={form} name="Scouting Form" onSubmit={generateQRCode}>
         <Header headerName={"Match Info"} />
         <div className={styles.allMatchInfo}>
         <div className={styles.MatchInfo}>
@@ -514,8 +664,9 @@ console.log("page",matchType)
           </>
         )}
         <br></br>
-        <button id="submit" type="submit">SUBMIT</button>
-      </form>
+        <button id="submit" type="submit">GENERATE QR CODE</button>
+      </form> ) }
     </div>
+    
   );
 }

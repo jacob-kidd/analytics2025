@@ -1,0 +1,114 @@
+/* Ensure the MainDiv has the correct background, padding, etc. */
+.MainDiv {
+    background: black;
+    color: white;
+    padding: 5px 40px;
+    padding-bottom: 50px;
+    min-height: calc(100vh - 45px);
+    font-family: "Belleza", sans-serif;
+    justify-items: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  
+  /* Update for textarea container */
+  .Intake {
+    display: flex;
+    flex-direction: column;
+    background-color: #3d3d3d;
+    color: black;
+    border-radius: 8px;
+    align-items: center;
+    padding: 3px;
+    width: 100%;
+    max-width: 500px;
+    height: 375px;
+    justify-self: center;
+    margin: 15px;
+    gap: 10px;
+  }
+  
+  /* Styling for the textarea */
+  .textarea {
+    width: 100%;
+    height: 100%;
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    resize: none;
+    outline: none;
+  }
+  
+  /* Styling for submit button */
+  .submitButton {
+    background-color: #FFD900;
+    height: 50px;
+    width: 200px;
+    border-radius: 5px;
+    border: 1px solid #ffa200;
+    font-size: 20px;
+    font-family: "Belleza", sans-serif;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .submitButton:hover {
+    background-color: #fcec91;
+  }
+  
+  /* Add padding for results and alignment */
+  .resultContainer {
+    margin-top: 20px;
+    text-align: center;
+  }
+  
+  .MatchInfo {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+  }
+  
+  /* Display status message */
+  .statusMessage {
+    margin-top: 20px;
+    font-size: 18px;
+  }
+  
+  /* Adjust text input focus styles */
+  .MainDiv input:focus,
+  .MainDiv textarea:focus {
+    border-color: rgb(87, 171, 254);
+    outline: none;
+  }
+  
+  .MainDiv input:focus:invalid,
+  .MainDiv textarea:focus:invalid {
+    border-color: rgb(184, 0, 0);
+  }
+  
+  /* Center text and headers */
+  .MainDiv h2 {
+    font-size: 28px;
+    text-align: center;
+  }
+  
+  /* Adjust for responsiveness */
+  @media (max-width: 768px) {
+    .MainDiv {
+      padding: 20px;
+    }
+  
+    .Intake {
+      width: 100%;
+    }
+  
+    .submitButton {
+      width: 150px;
+    }
+  }
+  
