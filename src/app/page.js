@@ -272,23 +272,7 @@ export default function Home() {
 
     <div className={styles.MainDiv}>
 
-    
-      <div className={styles.viewToggle}>
-        <button 
-        className={`${styles.toggleButton} ${viewMode === 'qualitative' ? styles.active : ''}`}
-        onClick={() => setViewMode('qualitative')}
-        >
-        Qualitative
-       </button>
-        <button
-          className={`${styles.toggleButton} ${viewMode === 'quantitative' ? styles.active : ''}`}
-          onClick={() => setViewMode('quantitative')}
-         >
-          Quantitative
-        </button>
-      </div>
-
-
+  
 
      {showQRCode ? (
         <div className={styles.QRCodeOverlay}>
