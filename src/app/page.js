@@ -574,23 +574,6 @@ export default function Home() {
                     visibleName={"Climb Speed"}
                     internalName={"climbspeed"}
                     description={"Climb Speed"}/>
-                  <Qualitative                   
-                    visibleName={"Maneuverability"}
-                    internalName={"maneuverability"}
-                    description={"Maneuverability"}/>
-                  <Qualitative                   
-                    visibleName={"Defense Played"}
-                    internalName={"defenseplayed"}
-                    description={"Ability to Play Defense"}/>
-                  <Qualitative                   
-                    visibleName={"Defense Evasion"}
-                    internalName={"defenseevasion"}
-                    description={"Defense Evasion Ability"}/>
-                  <Qualitative
-                    visibleName={"Aggression"}
-                    internalName={"aggression"}
-                    description={"Aggression"}
-                    symbol={"ⵔ"}/>
                   <Qualitative
                     visibleName={"Cage Hazard"}
                     internalName={"cagehazard"}

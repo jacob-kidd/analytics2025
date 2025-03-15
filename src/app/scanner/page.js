@@ -1,76 +1,68 @@
 "use client";
 import { useState } from 'react';
-import { decode } from 'base-58'; // Assuming you're using 'base-58' package
-import pako from 'pako'; // gzip library
+import { decode } from 'base-58';
+import pako from 'pako';
 import styles from './page.module.css';
 
 export default function Scanner() {
-  const [inputText, setInputText] = useState(""); // Text input state
+  const [inputText, setInputText] = useState("");
   const [uploadStatus, setUploadStatus] = useState("");
   const [scannedData, setScannedData] = useState(null);
 
-  // Handle the text box change
   const handleInputChange = (event) => {
     setInputText(event.target.value);
   };
 
-  // Convert Base58 back to Uint8Array and un-gzip the data
-  const handleBase58Submit = () => {
+  const processScannedData = async () => {
     setUploadStatus("Processing data...");
     try {
-      // Sanitize the input by removing any non-Base58 characters (like newlines or spaces)
+      // Sanitize and decode
       const sanitizedInput = inputText.replace(/[^A-HJ-NP-Za-km-z1-9]/g, "");
-
-      // Decode from Base58
       const decodedData = decode(sanitizedInput);
-
-      // Un-gzip the decoded data
+      
+      // Decompress
       const decompressedData = pako.ungzip(decodedData, { to: 'string' });
-
-      // Parse the JSON from decompressed data
       const parsedData = JSON.parse(decompressedData);
-      setScannedData(parsedData);
 
-      // Upload the parsed data
-      uploadFormData(parsedData);
+      // Handle both single and triple forms
+      const dataArray = Array.isArray(parsedData) ? parsedData : [parsedData];
+      setScannedData(dataArray);
 
-      // Clear the input text after successful submission
+      // Upload all entries
+      await uploadFormData(dataArray);
+      
       setInputText("");
-
+      setUploadStatus("Data processed successfully!");
     } catch (error) {
-      console.error("Error processing data:", error);
-      setUploadStatus("Error processing data. Please check the input.");
+      console.error("Processing error:", error);
+      setUploadStatus(`Error: ${error.message}`);
     }
   };
 
-  // Upload the form data to your database
-  const uploadFormData = async (data) => {
-    setUploadStatus("Uploading data...");
+  const uploadFormData = async (dataArray) => {
     try {
-      const response = await fetch('/api/add-match-data', {
-        method: "POST",
-        body: JSON.stringify(data),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.ok) {
-        // Check if the response is not empty before calling response.json()
-        const contentType = response.headers.get('Content-Type');
-        if (contentType && contentType.includes('application/json')) {
-          const errorData = await response.json();
-          setUploadStatus(`Upload Status: ${errorData.message}`);
-        } else {
-          // If it's not JSON, assume the upload was successful
-          setUploadStatus("Data uploaded successfully!");
+      for (const data of dataArray) {
+        // Validate form type
+        if (data.formType === 'tripleQualitative') {
+          // Handle qualitative-specific validation
+          if (data.team === undefined) {
+            throw new Error("Invalid qualitative data format");
+          }
         }
-      } else {
-        setUploadStatus("Upload failed. Server returned an error.");
+
+        const response = await fetch('/api/add-match-data', {
+          method: "POST",
+          body: JSON.stringify(data),
+          headers: { 'Content-Type': 'application/json' },
+        });
+
+        if (!response.ok) {
+          throw new Error(`Server error: ${response.status}`);
+        }
       }
     } catch (error) {
-      console.error("Upload error:", error);
-      setUploadStatus("Error uploading data. Please try again.");
+      console.error("Upload failed:", error);
+      throw error;
     }
   };
 
@@ -78,30 +70,43 @@ export default function Scanner() {
     <div className={styles.MainDiv}>
       <h2>FRC Scouting Data Upload</h2>
 
-      {/* Input field for Base58-encoded data */}
       <div className={styles.Intake}>
         <textarea
           value={inputText}
           onChange={handleInputChange}
-          placeholder="Click text box and scan QR code!"
+          placeholder="Scan QR code here..."
           className={styles.textarea}
+          rows="5"
         />
-        <button onClick={handleBase58Submit} className={styles.submitButton}>
-          Submit Base58 Data
+        <button 
+          onClick={processScannedData} 
+          className={styles.submitButton}
+          disabled={!inputText}
+        >
+          Process Data
         </button>
       </div>
 
-      {/* Display the upload status */}
       <div className={styles.statusMessage}>{uploadStatus}</div>
 
       {scannedData && (
         <div className={styles.resultContainer}>
-          <h2>Scanned Data</h2>
-          <div className={styles.MatchInfo}>
-            <p><strong>Team:</strong> {scannedData.team}</p>
-            <p><strong>Match:</strong> {scannedData.match}</p>
-            <p><strong>Scout:</strong> {scannedData.scoutname}</p>
-            <p><strong>Timestamp:</strong> {new Date(scannedData.timestamp).toLocaleString()}</p>
+          <h3>Scanned Data Preview</h3>
+          <div className={styles.dataGrid}>
+            {scannedData.map((data, index) => (
+              <div key={index} className={styles.dataCard}>
+                <p><strong>Form Type:</strong> {data.formType || 'standard'}</p>
+                <p><strong>Team:</strong> {data.team || 'N/A'}</p>
+                <p><strong>Match:</strong> {data.match || 'N/A'}</p>
+                <p><strong>Scout:</strong> {data.scoutname || 'Anonymous'}</p>
+                {data.formType === 'tripleQualitative' && (
+                  <>
+                    <p><strong>Maneuverability:</strong> {data.coralspeed || 'N/A'}</p>
+                    <p><strong>Defense:</strong> {data.defense ? "Yes" : "No"}</p>
+                  </>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       )}
