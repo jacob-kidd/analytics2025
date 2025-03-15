@@ -64,7 +64,7 @@ export default function Scanner() {
 
   return (
     <div className={styles.MainDiv}>
-      <h2>FRC Scouting Data Scanner</h2>
+      <h2>QR Scanner</h2>
 
       <div className={styles.ScannerInput}>
         <textarea
