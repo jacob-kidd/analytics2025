@@ -141,13 +141,32 @@ export default function Home() {
 
   const handleQRClose = () => {
     setShowQRCode(false);
+    
+    // Instead of form reset, manually clear inputs
+    setTeamsData([
+      { noShow: false, breakdown: false, defense: false },
+      { noShow: false, breakdown: false, defense: false },
+      { noShow: false, breakdown: false, defense: false }
+    ]);
+    setAllianceColor('red');
+    setMatchType('2');
+  
+    // Update scout profile
+    if (scoutProfile) {
+      const newProfile = {
+        ...scoutProfile,
+        match: String(Number(scoutProfile.match) + 1)
+      };
+      setScoutProfile(newProfile);
+      localStorage.setItem("ScoutProfile", JSON.stringify(newProfile));
+    }
+  
     new JSConfetti().addConfetti({
       emojis: ['🐠', '🐡', '🦀', '🪸'],
       emojiSize: 100,
       confettiRadius: 3,
       confettiNumber: 100,
     });
-    setTimeout(() => location.reload(), 2000);
   };
 
   return (

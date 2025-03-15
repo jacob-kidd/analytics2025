@@ -247,24 +247,36 @@ export default function Home() {
   }
   
   // Handle QR code scan completion
-  function handleQRClose() {
+  const handleQRClose = () => {
     setShowQRCode(false);
     
-    // Show confetti effect
-    const jsConfetti = new JSConfetti();
-    jsConfetti.addConfetti({
+    // Reset all form states
+    setNoShow(false);
+    setHumanPlayer(false);
+    setBreakdown(false);
+    setDefense(false);
+    setMatchType("2");
+    setFormData(null);
+  
+    // Update scout profile
+    if (scoutProfile) {
+      const newProfile = {
+        ...scoutProfile,
+        match: String(Number(scoutProfile.match) + 1),
+        matchType: "2" // Reset match type
+      };
+      setScoutProfile(newProfile);
+      localStorage.setItem("ScoutProfile", JSON.stringify(newProfile));
+    }
+  
+    // Confetti effect
+    new JSConfetti().addConfetti({
       emojis: ['🐠', '🐡', '🦀', '🪸'],
       emojiSize: 100,
       confettiRadius: 3,
       confettiNumber: 100,
     });
-    
-    globalThis.scrollTo({ top: 0, left: 0, behavior: "smooth" });
-    
-    setTimeout(() => {
-      location.reload()
-    }, 2000);
-  }
+  };
 
   console.log("page", matchType);
 
@@ -303,7 +315,7 @@ export default function Home() {
       ) : (
 
       <form ref={form} name="Scouting Form" onSubmit={generateQRCode}>
-        <Header headerName={"Match Info"} />
+        <Header headerName={"JORMUNSCOUTR"} />
         <div className={styles.allMatchInfo}>
         <div className={styles.MatchInfo}>
         <TextInput 

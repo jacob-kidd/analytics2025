@@ -361,3 +361,19 @@ hr.subsubheading {
     margin: 0;
   }
 }
+
+
+
+/* ORIGINAL FORM PROTECTION */
+:not(.qualPage) .Qual {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+:not(.qualPage) .Qualitative {
+  margin: 10px;
+  min-width: 200px;
+}
