@@ -77,7 +77,7 @@ export async function POST(req) {
     body = { ...FIELD_DEFAULTS, ...body };
 
     // Convert numeric fields
-    const numericFields = [
+    const NUMERIC_FIELDS = [
       'scoutteam', 'team', 'match', 'matchType',
       'autol1success', 'autol1fail', 'autol2success', 'autol2fail',
       'autol3success', 'autol3fail', 'autol4success', 'autol4fail',
@@ -92,8 +92,14 @@ export async function POST(req) {
       'aggression', 'cagehazard'
     ];
 
-    numericFields.forEach(field => {
-      body[field] = body[field] !== null ? Number(body[field]) || null : null;
+    NUMERIC_FIELDS.forEach(field => {
+      const value = processedData[field];
+      processedData[field] = value !== null ? Number(value) : null;
+      
+      // Convert NaN to null for database compatibility
+      if (Number.isNaN(processedData[field])) {
+        processedData[field] = null;
+      }
     });
 
     // Convert boolean fields
