@@ -7,107 +7,93 @@ import styles from './page.module.css';
 export default function Scanner() {
   const [inputText, setInputText] = useState("");
   const [uploadStatus, setUploadStatus] = useState("");
-  const [scannedData, setScannedData] = useState(null);
+  const [results, setResults] = useState([]);
 
-  const handleInputChange = (event) => {
-    setInputText(event.target.value);
-  };
-
-  const processScannedData = async () => {
-    setUploadStatus("Processing data...");
+  const processData = async (data) => {
     try {
-      // Sanitize and decode
-      const sanitizedInput = inputText.replace(/[^A-HJ-NP-Za-km-z1-9]/g, "");
-      const decodedData = decode(sanitizedInput);
-      
-      // Decompress
-      const decompressedData = pako.ungzip(decodedData, { to: 'string' });
-      const parsedData = JSON.parse(decompressedData);
+      // Handle both form types
+      const entries = data.formType === 'tripleQualitative' 
+        ? data.teams 
+        : [data];
 
-      // Handle both single and triple forms
-      const dataArray = Array.isArray(parsedData) ? parsedData : [parsedData];
-      setScannedData(dataArray);
+      const uploadPromises = entries.map(async (entry) => {
+        const response = await fetch('/api/add-match-data', {
+          method: "POST",
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(entry)
+        });
+        
+        if (!response.ok) throw new Error('Upload failed');
+        return response.json();
+      });
 
-      // Upload all entries
-      await uploadFormData(dataArray);
-      
-      setInputText("");
-      setUploadStatus("Data processed successfully!");
+      const results = await Promise.all(uploadPromises);
+      setResults(results);
+      setUploadStatus(`Successfully uploaded ${entries.length} records`);
+
     } catch (error) {
-      console.error("Processing error:", error);
+      console.error("Upload error:", error);
       setUploadStatus(`Error: ${error.message}`);
+      throw error;
     }
   };
 
-  const uploadFormData = async (dataArray) => {
+  const handleScan = async () => {
+    if (!inputText.trim()) return;
+    
+    setUploadStatus("Processing...");
+    setResults([]);
+
     try {
-      for (const data of dataArray) {
-        // Validate form type
-        if (data.formType === 'tripleQualitative') {
-          // Handle qualitative-specific validation
-          if (data.team === undefined) {
-            throw new Error("Invalid qualitative data format");
-          }
-        }
+      // Decode Base58
+      const sanitized = inputText.replace(/[^A-HJ-NP-Za-km-z1-9]/g, "");
+      const decoded = decode(sanitized);
+      
+      // Decompress
+      const decompressed = pako.ungzip(decoded, { to: 'string' });
+      const parsedData = JSON.parse(decompressed);
 
-        const response = await fetch('/api/add-match-data', {
-          method: "POST",
-          body: JSON.stringify(data),
-          headers: { 'Content-Type': 'application/json' },
-        });
+      await processData(parsedData);
+      setInputText("");
 
-        if (!response.ok) {
-          throw new Error(`Server error: ${response.status}`);
-        }
-      }
     } catch (error) {
-      console.error("Upload failed:", error);
-      throw error;
+      setUploadStatus("Invalid QR data format");
+      console.error("Processing error:", error);
     }
   };
 
   return (
     <div className={styles.MainDiv}>
-      <h2>FRC Scouting Data Upload</h2>
+      <h2>FRC Scouting Data Scanner</h2>
 
-      <div className={styles.Intake}>
+      <div className={styles.ScannerInput}>
         <textarea
           value={inputText}
-          onChange={handleInputChange}
+          onChange={(e) => setInputText(e.target.value)}
           placeholder="Scan QR code here..."
-          className={styles.textarea}
-          rows="5"
+          rows="3"
         />
         <button 
-          onClick={processScannedData} 
-          className={styles.submitButton}
-          disabled={!inputText}
+          onClick={handleScan}
+          disabled={!inputText.trim()}
         >
-          Process Data
+          Process Scan
         </button>
       </div>
 
-      <div className={styles.statusMessage}>{uploadStatus}</div>
+      <div className={styles.Status}>
+        {uploadStatus}
+      </div>
 
-      {scannedData && (
-        <div className={styles.resultContainer}>
-          <h3>Scanned Data Preview</h3>
-          <div className={styles.dataGrid}>
-            {scannedData.map((data, index) => (
-              <div key={index} className={styles.dataCard}>
-                <p><strong>Form Type:</strong> {data.formType || 'standard'}</p>
-                <p><strong>Team:</strong> {data.team || 'N/A'}</p>
-                <p><strong>Match:</strong> {data.match || 'N/A'}</p>
-                <p><strong>Scout:</strong> {data.scoutname || 'Anonymous'}</p>
-                {data.formType === 'tripleQualitative' && (
-                  <>
-                    <p><strong>Maneuverability:</strong> {data.coralspeed || 'N/A'}</p>
-                    <p><strong>Defense:</strong> {data.defense ? "Yes" : "No"}</p>
-                  </>
-                )}
-              </div>
-            ))}
-          </div>
+      {results.length > 0 && (
+        <div className={styles.Results}>
+          {results.map((result, index) => (
+            <div key={index} className={styles.ResultCard}>
+              <h3>Team {result.data?.team || 'N/A'}</h3>
+              <p>Match: {result.data?.match || 'N/A'}</p>
+              <p>Status: {result.success ? '✅ Success' : '❌ Failed'}</p>
+            </div>
+          ))}
         </div>
       )}
     </div>
