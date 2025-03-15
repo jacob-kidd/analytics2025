@@ -2,69 +2,114 @@ import { NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import _ from "lodash";
 
-// Field configuration for validation
-const FIELD_CONFIG = {
-  numbers: [
-    'scoutteam', 'team', 'match', 'matchType',
-    'autol1success', 'autol1fail', 'autol2success', 'autol2fail',
-    'autol3success', 'autol3fail', 'autol4success', 'autol4fail',
-    'autoalgaeremoved', 'autoprocessorsuccess', 'autoprocessorfail',
-    'autonetsuccess', 'autonetfail', 'telel1success', 'telel1fail',
-    'telel2success', 'telel2fail', 'telel3success', 'telel3fail',
-    'telel4success', 'telel4fail', 'telealgaeremoved',
-    'teleprocessorsuccess', 'teleprocessorfail', 'telenetsuccess',
-    'telenetfail', 'hpsuccess', 'hpfail', 'endlocation',
-    'coralspeed', 'processorspeed', 'netspeed', 'algaeremovalspeed',
-    'climbspeed', 'maneuverability', 'defenseplayed', 'defenseevasion',
-    'aggression', 'cagehazard'
-  ],
-  booleans: [
-    'noshow', 'leave', 'breakdown', 'coralgrndintake',
-    'coralstationintake', 'lollipop', 'algaegrndintake',
-    'algaehighreefintake', 'algaelowreefintake'
-  ],
-  strings: [
-    'scoutname', 'generalcomments', 'breakdowncomments', 'defensecomments'
-  ]
+const FIELD_DEFAULTS = {
+  // Pre-Match
+  scoutname: null,
+  scoutteam: null,
+  team: null,
+  match: null,
+  matchType: 2,
+  noshow: false,
+  
+  // Auto
+  leave: false,
+  autol1success: null,
+  autol1fail: null,
+  autol2success: null,
+  autol2fail: null,
+  autol3success: null,
+  autol3fail: null,
+  autol4success: null,
+  autol4fail: null,
+  autoprocessorsuccess: null,
+  autoprocessorfail: null,
+  autoalgaeremoved: null,
+  autonetsuccess: null,
+  autonetfail: null,
+  
+  // Tele
+  telel1success: null,
+  telel1fail: null,
+  telel2success: null,
+  telel2fail: null,
+  telel3success: null,
+  telel3fail: null,
+  telel4success: null,
+  telel4fail: null,
+  teleprocessorsuccess: null,
+  teleprocessorfail: null,
+  telealgaeremoved: null,
+  telenetsuccess: null,
+  telenetfail: null,
+  
+  // Qualitative
+  coralspeed: null,
+  processorspeed: null,
+  netspeed: null,
+  algaeremovalspeed: null,
+  climbspeed: null,
+  maneuverability: null,
+  defenseplayed: null,
+  defenseevasion: null,
+  aggression: null,
+  cagehazard: null,
+  
+  // Comments
+  breakdowncomments: null,
+  defensecomments: null,
+  generalcomments: null,
+  
+  // Other
+  hpsuccess: null,
+  hpfail: null,
+  endlocation: null,
+  coralgrndintake: false,
+  coralstationintake: false,
+  lollipop: false,
+  algaegrndintake: false,
+  algaehighreefintake: false,
+  algaelowreefintake: false
 };
 
 export async function POST(req) {
   try {
     let body = await req.json();
-    
-    // Set default values for all fields
-    const defaultBody = {
-      scoutname: '',
-      scoutteam: 0,
-      team: 0,
-      match: 0,
-      matchType: 2,
-      noshow: false,
-      // Add other fields with appropriate defaults...
-    };
+    body = { ...FIELD_DEFAULTS, ...body };
 
-    // Merge incoming data with defaults
-    body = { ...defaultBody, ...body };
+    // Convert numeric fields
+    const numericFields = [
+      'scoutteam', 'team', 'match', 'matchType',
+      'autol1success', 'autol1fail', 'autol2success', 'autol2fail',
+      'autol3success', 'autol3fail', 'autol4success', 'autol4fail',
+      'autoalgaeremoved', 'autoprocessorsuccess', 'autoprocessorfail',
+      'autonetsuccess', 'autonetfail', 'telel1success', 'telel1fail',
+      'telel2success', 'telel2fail', 'telel3success', 'telel3fail',
+      'telel4success', 'telel4fail', 'telealgaeremoved',
+      'teleprocessorsuccess', 'teleprocessorfail', 'telenetsuccess',
+      'telenetfail', 'hpsuccess', 'hpfail', 'endlocation',
+      'coralspeed', 'processorspeed', 'netspeed', 'algaeremovalspeed',
+      'climbspeed', 'maneuverability', 'defenseplayed', 'defenseevasion',
+      'aggression', 'cagehazard'
+    ];
 
-    // Convert numeric fields to numbers
-    FIELD_CONFIG.numbers.forEach(field => {
-      body[field] = Number(body[field]) || 0;
+    numericFields.forEach(field => {
+      body[field] = body[field] !== null ? Number(body[field]) || null : null;
     });
 
-    // Convert boolean fields to booleans
-    FIELD_CONFIG.booleans.forEach(field => {
+    // Convert boolean fields
+    const booleanFields = [
+      'noshow', 'leave', 'coralgrndintake',
+      'coralstationintake', 'lollipop', 'algaegrndintake',
+      'algaehighreefintake', 'algaelowreefintake'
+    ];
+
+    booleanFields.forEach(field => {
       body[field] = Boolean(body[field]);
     });
 
-    // Ensure string fields are strings
-    FIELD_CONFIG.strings.forEach(field => {
-      body[field] = String(body[field] || '');
-    });
-
-    // Adjust match number based on match type
+    // Handle match number adjustment
     const matchType = parseInt(body.matchType);
     let adjustedMatch = Number(body.match);
-    
     switch (matchType) {
       case 0: adjustedMatch -= 100; break;
       case 1: adjustedMatch -= 50; break;
@@ -74,12 +119,12 @@ export async function POST(req) {
     // Validate required fields
     if (
       !body.scoutname ||
-      !Number.isInteger(body.scoutteam) ||
-      !Number.isInteger(body.team) ||
-      !Number.isInteger(adjustedMatch)
+      body.scoutteam === null ||
+      body.team === null ||
+      body.match === null
     ) {
       return NextResponse.json(
-        { message: "Invalid required fields" },
+        { message: "Missing required fields: scoutname, scoutteam, team, or match" },
         { status: 400 }
       );
     }
@@ -92,21 +137,6 @@ export async function POST(req) {
                 ${adjustedMatch}, ${matchType}, ${body.noshow})
       `;
       return NextResponse.json({ message: "No-show recorded" });
-    }
-
-    // Validate quantitative data
-    const quantitativeFields = [
-      'autol1success', 'autol1fail', 'autol2success', 'autol2fail',
-      'autol3success', 'autol3fail', 'autol4success', 'autol4fail',
-      'telel1success', 'telel1fail', 'telel2success', 'telel2fail',
-      'telel3success', 'telel3fail', 'telel4success', 'telel4fail'
-    ];
-
-    if (quantitativeFields.some(field => isNaN(body[field]))) {
-      return NextResponse.json(
-        { message: "Invalid quantitative data" },
-        { status: 400 }
-      );
     }
 
     // Insert full data
