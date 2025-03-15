@@ -75,6 +75,8 @@ export async function POST(req) {
   try {
     let body = await req.json();
     body = { ...FIELD_DEFAULTS, ...body };
+    const processedData = { ...FIELD_DEFAULTS, ...body };
+
 
     // Convert numeric fields
     const NUMERIC_FIELDS = [
@@ -102,6 +104,24 @@ export async function POST(req) {
       }
     });
 
+    if (
+      !processedData.scoutname ||
+      processedData.scoutteam === null ||
+      processedData.team === null ||
+      processedData.match === null
+    ) {
+      return NextResponse.json(
+        { message: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+    if (Number.isNaN(processedData.match)) {
+      return NextResponse.json(
+        { message: "Invalid match number" },
+        { status: 400 }
+      );
+    }
+
     // Convert boolean fields
     const booleanFields = [
       'noshow', 'leave', 'coralgrndintake',
@@ -115,25 +135,22 @@ export async function POST(req) {
 
     // Handle match number adjustment
     const matchType = parseInt(body.matchType);
-    let adjustedMatch = Number(body.match);
-    switch (matchType) {
+    let adjustedMatch = processedData.match;
+    switch (processedData.matchType) {
       case 0: adjustedMatch -= 100; break;
       case 1: adjustedMatch -= 50; break;
       case 3: adjustedMatch += 100; break;
     }
 
-    // Validate required fields
-    if (
-      !body.scoutname ||
-      body.scoutteam === null ||
-      body.team === null ||
-      body.match === null
-    ) {
+    const numericValues = NUMERIC_FIELDS.map(f => processedData[f]);
+    if (numericValues.some(Number.isNaN)) {
       return NextResponse.json(
-        { message: "Missing required fields: scoutname, scoutteam, team, or match" },
+        { message: "Invalid numeric values detected" },
         { status: 400 }
       );
     }
+
+   
 
     // Handle no-show case
     if (body.noshow) {
