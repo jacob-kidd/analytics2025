@@ -245,15 +245,6 @@ hr.subsubheading {
   margin: 20px 0;
 }
 
-.centeredInput {
-  width: 200px;
-  margin: 0 auto;
-}
-
-.centeredCheckbox {
-  justify-content: center;
-  margin: 10px auto;
-}
 
 /* Team section styling */
 .TeamSection {
@@ -353,4 +344,20 @@ hr.subsubheading {
 
 .SubmitButton {
   margin-top: 30px;
+}
+
+@media (max-width: 768px) {
+  .qualGrid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .qualitativeSection {
+    padding: 10px;
+  }
+  
+  .Qualitative {
+    min-width: 100%;
+    margin: 0;
+  }
 }
