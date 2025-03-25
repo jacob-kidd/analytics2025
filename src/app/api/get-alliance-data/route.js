@@ -9,7 +9,7 @@ export async function GET() {
     const { rows } = await sql`SELECT * FROM phr2025;`;
     let responseObject = {};
 
-    const frcAPITeamData = await fetch(`https://www.thebluealliance.com/api/v3/event/2025casd/teams`, {
+    const frcAPITeamData = await fetch(`https://www.thebluealliance.com/api/v3/event/2025njski/teams`, {
       headers: {
         "X-TBA-Auth-Key": process.env.TBA_AUTH_KEY,
         "Accept": "application/json"

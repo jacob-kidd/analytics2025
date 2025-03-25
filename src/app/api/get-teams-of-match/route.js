@@ -17,7 +17,7 @@ export async function GET(request) {
   
   try {
     const response = await fetch(
-      `https://www.thebluealliance.com/api/v3/event/2025casd/matches/simple`,
+      `https://www.thebluealliance.com/api/v3/event/2025njski/matches/simple`,
       {
         headers: {
           "X-TBA-Auth-Key": process.env.TBA_AUTH_KEY,
