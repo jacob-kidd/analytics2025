@@ -86,7 +86,7 @@ export async function POST(req) {
   if (body.noshow) {
     console.log("no show!");
     let resp = await sql`
-      INSERT INTO sdr2025 (ScoutName, ScoutTeam, Team, Match, MatchType, NoShow)
+      INSERT INTO phr2025 (ScoutName, ScoutTeam, Team, Match, MatchType, NoShow)
       VALUES (${body.scoutname}, ${body.scoutteam}, ${body.team}, ${adjustedMatch}, ${body.matchType}, ${body.noshow})
     `;
     return NextResponse.json({ message: "Success!" }, { status: 201 });
@@ -172,7 +172,7 @@ export async function POST(req) {
   
   // Insert Data into Database**
   let resp = await sql`
-    INSERT INTO sdr2025 (
+    INSERT INTO phr2025 (
       scoutname, scoutteam, team, match, matchtype, breakdown, noshow, leave, autol1success, autol1fail, autol2success, autol2fail, autol3success, autol3fail, autol4success, autol4fail, autoalgaeremoved, autoprocessorsuccess, autoprocessorfail, autonetsuccess, autonetfail, telel1success, telel1fail, telel2success, telel2fail, telel3success, telel3fail, telel4success, telel4fail, telealgaeremoved, teleprocessorsuccess, teleprocessorfail, telenetsuccess, telenetfail, hpsuccess, hpfail, endlocation, coralspeed, processorspeed, netspeed, algaeremovalspeed, climbspeed, maneuverability, defenseplayed, defenseevasion, aggression, cagehazard, coralgrndintake, coralstationintake, lollipop, algaegrndintake, algaehighreefintake, algaelowreefintake, generalcomments, breakdowncomments, defensecomments
     )
     VALUES (
