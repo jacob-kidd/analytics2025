@@ -6,7 +6,7 @@ import { calcAuto, calcTele, calcEnd, calcEPA } from "@/util/calculations";
 export async function POST(request) {
   const requestBody = await request.json(); // Weight inputs
 
-  let data = await sql`SELECT * FROM sdr2025;`;
+  let data = await sql`SELECT * FROM phr2025;`;
   let rows = data.rows;
   console.log(rows)
 
