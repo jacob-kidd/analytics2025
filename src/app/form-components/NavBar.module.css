@@ -4,9 +4,10 @@
     justify-content: space-between;
     position: sticky;
     top: 0;
-    background-color: #363636;
+    background-color: #081526;
     z-index: 10;
     width: 100vw;
+    overflow: hidden;
 }
 
 .logo {
@@ -14,6 +15,8 @@
     height: 40px;
     align-self: center;
     margin-left: 10px;
+    overflow: hidden;
+
 }
 
 .pages {
@@ -21,23 +24,29 @@
     flex-direction: row;
     justify-content: space-evenly;
     flex-grow: 1;
-    background: #363636;
+    background: #081526;
+    overflow: hidden;
+
 }
 
 .pages a {
-    color: #FFD900;
+    color: #bd9748;
     text-decoration: none;
     padding: 8px;
     padding-top: calc(8px + 5px);
     font-weight: bolder;
     transition: 0.3s;
-    border-bottom: 5px solid #363636;
-    background: #363636;
+    border-bottom: 5px solid #081526;
+    background: #081526;
+    overflow: hidden;
+
 }
 
 
 .pages a:hover {
-    border-bottom: 5px solid #FFD900;
+    border-bottom: 5px solid #bd9748;
+    overflow: hidden;
+
 }
 
 

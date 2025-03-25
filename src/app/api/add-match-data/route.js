@@ -2,26 +2,81 @@ import { NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import _ from "lodash";
 
-export async function POST(req) {
-  let body = await req.json();
-  console.log(body);
+const FIELD_DEFAULTS = {
+  // Pre-Match
+  scoutname: null,
+  scoutteam: null,
+  team: null,
+  match: null,
+  matchType: 2,
+  noshow: false,
+  
+  // Auto
+  leave: false,
+  autol1success: null,
+  autol1fail: null,
+  autol2success: null,
+  autol2fail: null,
+  autol3success: null,
+  autol3fail: null,
+  autol4success: null,
+  autol4fail: null,
+  autoprocessorsuccess: null,
+  autoprocessorfail: null,
+  autoalgaeremoved: null,
+  autonetsuccess: null,
+  autonetfail: null,
+  
+  // Tele
+  telel1success: null,
+  telel1fail: null,
+  telel2success: null,
+  telel2fail: null,
+  telel3success: null,
+  telel3fail: null,
+  telel4success: null,
+  telel4fail: null,
+  teleprocessorsuccess: null,
+  teleprocessorfail: null,
+  telealgaeremoved: null,
+  telenetsuccess: null,
+  telenetfail: null,
+  
+  // Qualitative
+  coralspeed: null,
+  processorspeed: null,
+  netspeed: null,
+  algaeremovalspeed: null,
+  climbspeed: null,
+  maneuverability: null,
+  defenseplayed: null,
+  defenseevasion: null,
+  aggression: null,
+  cagehazard: null,
+  
+  // Comments
+  breakdowncomments: null,
+  defensecomments: null,
+  generalcomments: null,
+  
+  // Other
+  hpsuccess: null,
+  hpfail: null,
+  endlocation: null,
+  coralgrndintake: false,
+  coralstationintake: false,
+  lollipop: false,
+  algaegrndintake: false,
+  algaehighreefintake: false,
+  algaelowreefintake: false
+};
 
-  // Adjust match number based on match type
-  let adjustedMatch = body.match;
-  switch (parseInt(body.matchType)) {
-    case 0: // pre-comp
-      adjustedMatch = body.match - 100;
-      break;
-    case 1: // practice
-      adjustedMatch = body.match - 50;
-      break;
-    case 2: // qual (no change)
-      adjustedMatch = body.match;
-      break;
-    case 3: // elim
-      adjustedMatch = body.match + 100;
-      break;
-  }
+export async function POST(req) {
+  try {
+    let body = await req.json();
+    body = { ...FIELD_DEFAULTS, ...body };
+    const processedData = { ...FIELD_DEFAULTS, ...body };
+
 
   if (!(_.isString(body.scoutname) && _.isNumber(body.scoutteam) && _.isNumber(body.team) && _.isNumber(adjustedMatch) && _.isNumber(body.matchType))) {
     return NextResponse.json({ message: "Invalid Pre-Match Data!" }, { status: 400 });
@@ -132,6 +187,13 @@ export async function POST(req) {
       ${body.generalcomments}, ${body.breakdowncomments}, ${body.defensecomments}
       )`;      
 
-  return NextResponse.json({ message: "Success!" }, { status: 201 });
-}
+    return NextResponse.json({ message: "Data recorded successfully" });
 
+  } catch (error) {
+    console.error("Database error:", error);
+    return NextResponse.json(
+      { message: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
