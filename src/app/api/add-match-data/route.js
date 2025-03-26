@@ -10,6 +10,7 @@ const FIELD_DEFAULTS = {
   match: null,
   matchType: 2,
   noshow: false,
+  adjustedMatch: null,
   
   // Auto
   leave: false,
@@ -77,8 +78,10 @@ export async function POST(req) {
     body = { ...FIELD_DEFAULTS, ...body };
     const processedData = { ...FIELD_DEFAULTS, ...body };
 
+    adjustedMatch = body.match;
 
-  if (!(_.isString(body.scoutname) && _.isNumber(body.scoutteam) && _.isNumber(body.team) && _.isNumber(adjustedMatch) && _.isNumber(body.matchType))) {
+
+  if (!(_.isString(body.scoutname) && _.isNumber(body.scoutteam) && _.isNumber(body.team) && _.isNumber(body.matchType))) {
     return NextResponse.json({ message: "Invalid Pre-Match Data!" }, { status: 400 });
   }
   
