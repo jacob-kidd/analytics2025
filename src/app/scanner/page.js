@@ -1,6 +1,6 @@
 "use client";
 import { useState } from 'react';
-import { decode } from 'base-58';
+import base58 from 'base-58';
 import pako from 'pako';
 import styles from './page.module.css';
 
@@ -45,9 +45,13 @@ export default function Scanner() {
     setResults([]);
 
     try {
+
+      console.log("Decoded:", decoded);
+      console.log("Decompressed:", decompressed);
+      console.log("Parsed Data:", parsedData);
       // Decode Base58
       const sanitized = inputText.replace(/[^A-HJ-NP-Za-km-z1-9]/g, "");
-      const decoded = decode(sanitized);
+      const decoded = base58.decode(sanitized); // Fixed decoding method
       
       // Decompress
       const decompressed = pako.ungzip(decoded, { to: 'string' });
