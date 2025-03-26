@@ -239,7 +239,7 @@ export default function Home() {
       let Match = document.querySelector("input[name='match']").value;
       let newProfile = { 
         scoutname: ScoutName, 
-        scoutteam: ScoutTeam, 
+        scoutteam: "5895", 
         match: Number(Match)+1,
         matchType: matchType 
       };
@@ -317,7 +317,7 @@ export default function Home() {
       ) : (
 
       <form ref={form} name="Scouting Form" onSubmit={generateQRCode}>
-        <Header headerName={"JORMUNSCOUTR"} />
+        <Header headerName={"JÖRMUNSCOUTR"} />
         <div className={styles.allMatchInfo}>
         <div className={styles.MatchInfo}>
         <TextInput 
@@ -325,12 +325,7 @@ export default function Home() {
             internalName={"scoutname"} 
             defaultValue={scoutProfile?.scoutname || ""}
           />
-          <TextInput 
-            visibleName={"Team #:"} 
-            internalName={"scoutteam"} 
-            defaultValue={scoutProfile?.scoutteam || ""}
-            type={"number"}
-          />
+          
           <TextInput
             visibleName={"Team Scouted:"}
             internalName={"team"}
@@ -542,7 +537,14 @@ export default function Home() {
                       pieceType={"Fail"}
                       internalName={"telenetfail"}/>
                 </div>
+              
+              <CommentBox
+                visibleName={"General Comments"}
+                internalName={"generalcomments"}
+              />  
+
               </div>
+
               
             <div className={styles.Endgame}>
               <Header headerName={"Endgame"}/>
@@ -562,10 +564,7 @@ export default function Home() {
                   visibleName={"Coral Station"}
                   internalName={"coralstationintake"}
                 />
-                <Checkbox
-                  visibleName={"Lollipop"}
-                  internalName={"algaegndintake"}
-                />
+        
                 <Checkbox
                   visibleName={"Algae Ground"}
                   internalName={"algaegndintake"}
@@ -596,10 +595,7 @@ export default function Home() {
                   internalName={"defensecomments"}
                 />
               }
-              <CommentBox
-                visibleName={"General Comments"}
-                internalName={"generalcomments"}
-              />
+             
             </div>
           </>
         )}
