@@ -23,7 +23,7 @@ export default function Home() {
   const [humanplayer, setHumanPlayer] = useState(false);
   const [breakdown, setBreakdown] = useState(false);
   const [defense, setDefense] = useState(false);
-  const [matchType, setMatchType] = useState("2");
+  const [matchType, setMatchType] = useState("1");
   const [scoutProfile, setScoutProfile] = useState(null);
   const [showQRCode, setShowQRCode] = useState(false);
   const [formData, setFormData] = useState(null);
@@ -41,7 +41,7 @@ export default function Home() {
       if (savedProfile) {
         const profileData = JSON.parse(savedProfile)
         setScoutProfile(profileData);
-        setMatchType(profileData.matchType || "2")
+        setMatchType(profileData.matchType || "1")
       }
     }
   }, []);
