@@ -542,22 +542,7 @@ export default function Home() {
                       internalName={"telenetfail"}/>
                 </div>
               </div>
-              <div className={styles.HumanPlayer}>
-              <SubHeader subHeaderName={"Human Player"}/>
-              <Checkbox visibleName={"Human Player From Team?"} internalName={"humanplayer"} changeListener={onHumanPlayerChange}/>
-              { humanplayer &&
-                <div className={styles.HBox}>
-                  <NumericInput 
-                    visibleName={"Success"}
-                    pieceType={"Success"}
-                    internalName={"hpsuccess"}/>
-                  <NumericInput 
-                    visibleName={"Fail"}
-                    pieceType={"Fail"}
-                    internalName={"hpfail"}/>
-                </div>
-              }
-              </div>
+              
             <div className={styles.Endgame}>
               <Header headerName={"Endgame"}/>
               <EndPlacement/>
@@ -593,33 +578,7 @@ export default function Home() {
                   internalName={"algaelowreefintake"}
                 />
               </div>
-                <div className={styles.Qual}>
-                  <Qualitative                   
-                    visibleName={"Coral Speed"}
-                    internalName={"coralspeed"}
-                    description={"Coral Speed"}/>
-                  <Qualitative                   
-                    visibleName={"Processor Speed"}
-                    internalName={"processorspeed"}
-                    description={"Processor Speed"}/>
-                  <Qualitative                   
-                    visibleName={"Net Speed"}
-                    internalName={"netspeed"}
-                    description={"Net Speed"}/>
-                  <Qualitative                   
-                    visibleName={"Algae Removal Speed"}
-                    internalName={"algaeremovalspeed"}
-                    description={"Algae Removal Speed"}/>
-                  <Qualitative                   
-                    visibleName={"Climb Speed"}
-                    internalName={"climbspeed"}
-                    description={"Climb Speed"}/>
-                  <Qualitative
-                    visibleName={"Cage Hazard"}
-                    internalName={"cagehazard"}
-                    description={"Cage Hazard"}
-                    symbol={"ⵔ"}/>
-                </div>
+               
               <br></br>
 
               <Checkbox visibleName={"Broke down?"} internalName={"breakdown"} changeListener={onBreakdownChange} />
