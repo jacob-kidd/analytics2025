@@ -10,6 +10,7 @@ const FIELD_DEFAULTS = {
   match: null,
   matchType: 2,
   noshow: false,
+  adjustedMatch: match,
   
   // Auto
   leave: false,
