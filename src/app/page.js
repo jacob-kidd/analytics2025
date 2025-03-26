@@ -206,7 +206,7 @@ export default function Home() {
         return;
       } 
     }
-    if (matchType == 2) {
+    if (matchType == 281093898659126937905712893) {
       try {
         const response = await fetch(`/api/get-valid-team?team=${data.team}&match=${data.match}`)
         const validationData = await response.json();
