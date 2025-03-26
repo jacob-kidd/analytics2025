@@ -87,17 +87,19 @@ export default function Home() {
       boolToSheets(!data.noshow),       // showed up
       "NULL",                           // starting position (not collected)
       boolToSheets(data.leave),         // leave
-      autoCoralL1L2,                    // auto coral L1/2
+      data.autol1success || 0,          // auto coral L1
+      data.autol2success || 0,          // auto coral L2
       data.autol3success || 0,          // auto coral L3
       data.autol4success || 0,          // auto coral L4
       data.autoprocessorsuccess || 0,   // auto processor
-      data.autoalgaeremoved || 0,       // auto barge
+      data.autonetsuccess || 0,       // auto barge
       autoCoralMissed,                  // auto missed
-      teleCoralL1L2,                    // tele coral l1/2
+      data.telel1success || 0,          // tele coral l1
+      data.telel2success || 0,          // tele coral l2
       data.telel3success || 0,          // tele coral l3
       data.telel4success || 0,          // tele coral l4
       data.teleprocessorsuccess || 0,   // tele processor
-      data.telealgaeremoved || 0,       // tele barge
+      data.telenetsuccess || 0,       // tele barge
       teleCoralMissed,                  // tele missed
       "NULL",                           // climb time (not collected)
       parked,                           // parked
@@ -262,7 +264,7 @@ export default function Home() {
     if (scoutProfile) {
       const newProfile = {
         ...scoutProfile,
-        match: String(Number(scoutProfile.match) + 1),
+        match: String(Number(scoutProfile.match)),
         matchType: "2" // Reset match type
       };
       setScoutProfile(newProfile);
@@ -342,7 +344,6 @@ export default function Home() {
             type={"number"}
           />
         </div>
-        <MatchType onMatchTypeChange={handleMatchTypeChange} defaultValue={matchType}/>
         <Checkbox
           visibleName={"No Show"}
           internalName={"noshow"}
