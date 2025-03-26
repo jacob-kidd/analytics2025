@@ -114,32 +114,34 @@ export default function Home() {
 
   
   // Generate QR code data URL using the qrcode library
-  const generateQRDataURL = async (data) => {
-    try {
-      const compressedData = pako.gzip(new TextEncoder().encode(JSON.stringify(data)));
-      const base58Encoded = base58.encode(compressedData);
-  
-      // Generate original QR code
-      const dataURL1 = await QRCode.toDataURL(base58Encoded, {
-        width: 400,
-        margin: 3,
-        errorCorrectionLevel: 'L'
-      });
-  
-      // Generate TSV QR code
-      const tsvString = generateTabSeparatedString(data);
-      const dataURL2 = await QRCode.toDataURL(tsvString, {
-        width: 400,
-        margin: 3,
-        errorCorrectionLevel: 'L'
-      });
-  
-      setQrCodeDataURL1(dataURL1);
-      setQrCodeDataURL2(dataURL2);
-    } catch (error) {
-      console.error("Error generating QR code:", error);
-    }
-  };
+  // In your form component's generateQRDataURL function
+const generateQRDataURL = async (data) => {
+  try {
+    // Stringify with sorted keys for consistent encoding
+    const jsonString = JSON.stringify(data, Object.keys(data).sort());
+    
+    // Convert to UTF-8 bytes
+    const encoder = new TextEncoder();
+    const jsonBytes = encoder.encode(jsonString);
+    
+    // Compress with proper gzip headers
+    const compressed = pako.gzip(jsonBytes, { level: 9 });
+    
+    // Base58 encode binary data
+    const base58String = base58.encode(compressed);
+
+    // Generate QR Code
+    const dataURL = await QRCode.toDataURL(base58String, {
+      errorCorrectionLevel: 'H',
+      margin: 2,
+      width: 400
+    });
+    
+    setQrCodeDataURL1(dataURL);
+  } catch (error) {
+    console.error("QR Generation Error:", error);
+  }
+};
 
   useEffect(() => {
     if (formData) {
