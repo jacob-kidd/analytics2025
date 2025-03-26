@@ -78,7 +78,7 @@ export async function POST(req) {
     body = { ...FIELD_DEFAULTS, ...body };
     const processedData = { ...FIELD_DEFAULTS, ...body };
 
-    adjustedMatch = body.match;
+    let adjustedMatch = body.match;
 
 
   if (!(_.isString(body.scoutname) && _.isNumber(body.scoutteam) && _.isNumber(body.team) && _.isNumber(body.matchType))) {
