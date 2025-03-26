@@ -257,7 +257,7 @@ export default function Home() {
     setHumanPlayer(false);
     setBreakdown(false);
     setDefense(false);
-    setMatchType("2");
+    setMatchType("1");
     setFormData(null);
   
     // Update scout profile
@@ -265,7 +265,7 @@ export default function Home() {
       const newProfile = {
         ...scoutProfile,
         match: String(Number(scoutProfile.match)),
-        matchType: "2" // Reset match type
+        matchType: "1" // Reset match type
       };
       setScoutProfile(newProfile);
       localStorage.setItem("ScoutProfile", JSON.stringify(newProfile));
